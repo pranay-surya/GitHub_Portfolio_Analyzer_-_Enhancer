@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}GitHub Portfolio Analyzer - Get Your Score{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 text-center">
+                <h1 class="display-4 fw-bold mb-3">
+                    <i class="bi bi-graph-up-arrow text-primary"></i>
+                    GitHub Portfolio Analyzer
+                </h1>
+                <p class="lead text-muted mb-5">
+                    Get a recruiter-ready score and actionable feedback to improve your GitHub profile
+                </p>
+                
+                <!-- Search Form -->
+                <div class="card shadow-lg border-0">
+                    <div class="card-body p-4">
+                        <form id="analyzeForm" action="{{ url_for('analyze') }}" method="POST">
+                            <div class="input-group input-group-lg mb-3">
+                                <span class="input-group-text bg-white">
+                                    <i class="bi bi-github"></i>
+                                </span>
+                                <input 
+                                    type="text" 
+                                    class="form-control" 
+                                    name="username" 
+                                    id="usernameInput"
+                                    placeholder="Enter GitHub username or URL"
+                                    required
+                                    autocomplete="off"
+                                >
+                                <button class="btn btn-primary px-4" type="submit" id="analyzeBtn">
+                                    <i class="bi bi-search me-2"></i>
+                                    Analyze
+                                </button>
+                            </div>
+                            <small class="text-muted">
+                                Example: <code>octocat</code> or <code>https://github.com/octocat</code>
+                            </small>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Error Alert -->
+                {% if error %}
+                <div class="alert alert-danger mt-4" role="alert">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    {{ error }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<section class="features-section py-5">
+    <div class="container">
+        <h2 class="text-center mb-5">What We Analyze</h2>
+        <div class="row g-4">
+            <div class="col-md-3">
+                <div class="card h-100 border-0 shadow-sm text-center p-4">
+                    <div class="card-body">
+                        <div class="feature-icon bg-primary bg-gradient text-white rounded-circle mb-3 mx-auto">
+                            <i class="bi bi-file-text"></i>
+                        </div>
+                        <h5 class="card-title">Documentation</h5>
+                        <p class="card-text text-muted">
+                            README quality, project descriptions, and topic tags
+                        </p>
+                        <span class="badge bg-primary">30% Weight</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card h-100 border-0 shadow-sm text-center p-4">
+                    <div class="card-body">
+                        <div class="feature-icon bg-success bg-gradient text-white rounded-circle mb-3 mx-auto">
+                            <i class="bi bi-calendar-check"></i>
+                        </div>
+                        <h5 class="card-title">Consistency</h5>
+                        <p class="card-text text-muted">
+                            Commit frequency, activity streaks, and recent updates
+                        </p>
+                        <span class="badge bg-success">25% Weight</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card h-100 border-0 shadow-sm text-center p-4">
+                    <div class="card-body">
+                        <div class="feature-icon bg-info bg-gradient text-white rounded-circle mb-3 mx-auto">
+                            <i class="bi bi-code-slash"></i>
+                        </div>
+                        <h5 class="card-title">Code Quality</h5>
+                        <p class="card-text text-muted">
+                            Repository structure, commit messages, and best practices
+                        </p>
+                        <span class="badge bg-info">25% Weight</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card h-100 border-0 shadow-sm text-center p-4">
+                    <div class="card-body">
+                        <div class="feature-icon bg-warning bg-gradient text-white rounded-circle mb-3 mx-auto">
+                            <i class="bi bi-star"></i>
+                        </div>
+                        <h5 class="card-title">Impact</h5>
+                        <p class="card-text text-muted">
+                            Stars, forks, followers, and community engagement
+                        </p>
+                        <span class="badge bg-warning text-dark">20% Weight</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works -->
+<section class="how-it-works py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center mb-5">How It Works</h2>
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="row g-4">
+                    <div class="col-md-4 text-center">
+                        <div class="step-number">1</div>
+                        <h5>Enter Username</h5>
+                        <p class="text-muted">Paste your GitHub profile URL or username</p>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <div class="step-number">2</div>
+                        <h5>Get Analyzed</h5>
+                        <p class="text-muted">We analyze your repos, commits, and profile</p>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <div class="step-number">3</div>
+                        <h5>Improve</h5>
+                        <p class="text-muted">Follow actionable suggestions to boost your score</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

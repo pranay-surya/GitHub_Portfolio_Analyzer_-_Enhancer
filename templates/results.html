@@ -1,0 +1,656 @@
+{% extends "base.html" %}
+
+{% block title %}Results for @{{ profile.username }} - GitHub Portfolio Analyzer{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    
+    <!-- Profile Header -->
+    <div class="row justify-content-center mb-5">
+        <div class="col-lg-8 text-center">
+            {% if profile.avatar_url %}
+            <img 
+                src="{{ profile.avatar_url }}" 
+                alt="{{ profile.name or profile.username }}" 
+                class="rounded-circle mb-3 shadow"
+                width="120"
+                height="120"
+                onerror="this.src='https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png'"
+            >
+            {% endif %}
+            <h1 class="h2 mb-1">{{ profile.name or profile.username }}</h1>
+            <p class="text-muted mb-2">
+                <a href="https://github.com/{{ profile.username }}" target="_blank" class="text-decoration-none">
+                    @{{ profile.username }}
+                    <i class="bi bi-box-arrow-up-right ms-1"></i>
+                </a>
+            </p>
+            {% if profile.bio %}
+            <p class="text-secondary">{{ profile.bio }}</p>
+            {% endif %}
+            {% if profile.location %}
+            <p class="text-muted">
+                <i class="bi bi-geo-alt me-1"></i>{{ profile.location }}
+                {% if profile.company %}
+                    <span class="mx-2">•</span>
+                    <i class="bi bi-building me-1"></i>{{ profile.company }}
+                {% endif %}
+            </p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Score Card -->
+    <div class="row justify-content-center mb-5">
+        <div class="col-lg-6">
+            <div class="score-card text-center p-5" style="background: linear-gradient(135deg, {{ score_color }}dd, {{ score_color }}99);">
+                <p class="text-white-50 mb-0 text-uppercase fw-bold">Portfolio Score</p>
+                <h1 class="display-1 fw-bold text-white mb-0">{{ score }}</h1>
+                <p class="h4 text-white mb-3">out of 100</p>
+                <span class="badge bg-white text-dark fs-5 px-4 py-2">Grade: {{ grade }}</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Overall Message -->
+    {% if feedback and feedback.overall_message %}
+    <div class="row justify-content-center mb-5">
+        <div class="col-lg-8">
+            {% if feedback.overall_message is mapping %}
+                {% set msg_type = feedback.overall_message.type or 'info' %}
+                {% set msg_emoji = feedback.overall_message.emoji or '📊' %}
+                {% set msg_title = feedback.overall_message.title or 'Analysis Complete' %}
+                {% set msg_text = feedback.overall_message.text or '' %}
+            {% else %}
+                {% set msg_type = 'info' %}
+                {% set msg_emoji = '📊' %}
+                {% set msg_title = 'Analysis Complete' %}
+                {% set msg_text = feedback.overall_message %}
+            {% endif %}
+            
+            <div class="alert alert-{{ msg_type }} d-flex align-items-center" role="alert">
+                <span class="fs-1 me-3">{{ msg_emoji }}</span>
+                <div>
+                    <h5 class="alert-heading mb-1">{{ msg_title }}</h5>
+                    <p class="mb-0">{{ msg_text }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Quick Stats -->
+    <div class="row g-4 mb-5">
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-folder2-open fs-1 text-primary mb-2 d-block"></i>
+                    <h3 class="mb-0">{{ summary.total_repos or 0 }}</h3>
+                    <p class="text-muted mb-0">Repositories</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-star-fill fs-1 text-warning mb-2 d-block"></i>
+                    <h3 class="mb-0">{{ summary.total_stars or 0 }}</h3>
+                    <p class="text-muted mb-0">Total Stars</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-share-fill fs-1 text-info mb-2 d-block"></i>
+                    <h3 class="mb-0">{{ summary.total_forks or 0 }}</h3>
+                    <p class="text-muted mb-0">Total Forks</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <i class="bi bi-code-slash fs-1 text-success mb-2 d-block"></i>
+                    <h3 class="mb-0">
+                        {% if summary.top_languages %}
+                            {% if summary.top_languages[0] %}
+                                {{ summary.top_languages[0][0] }}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </h3>
+                    <p class="text-muted mb-0">Top Language</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Category Scores -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h3 class="mb-4">
+                <i class="bi bi-bar-chart-fill me-2"></i>
+                Score Breakdown
+            </h3>
+        </div>
+        
+        <!-- Documentation -->
+        <div class="col-md-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="mb-0">
+                            <i class="bi bi-file-text text-primary me-2"></i>
+                            Documentation
+                        </h5>
+                        <span class="badge bg-primary">
+                            {{ category_scores.documentation.raw_score or 0 }}/100
+                        </span>
+                    </div>
+                    <div class="progress mb-3" style="height: 10px;">
+                        <div class="progress-bar bg-primary" 
+                             role="progressbar"
+                             style="width: {{ category_scores.documentation.raw_score or 0 }}%"
+                             aria-valuenow="{{ category_scores.documentation.raw_score or 0 }}"
+                             aria-valuemin="0" 
+                             aria-valuemax="100">
+                        </div>
+                    </div>
+                    <small class="text-muted">Weight: {{ category_scores.documentation.weight or 30 }}%</small>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Consistency -->
+        <div class="col-md-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="mb-0">
+                            <i class="bi bi-calendar-check text-success me-2"></i>
+                            Consistency
+                        </h5>
+                        <span class="badge bg-success">
+                            {{ category_scores.consistency.raw_score or 0 }}/100
+                        </span>
+                    </div>
+                    <div class="progress mb-3" style="height: 10px;">
+                        <div class="progress-bar bg-success" 
+                             role="progressbar"
+                             style="width: {{ category_scores.consistency.raw_score or 0 }}%"
+                             aria-valuenow="{{ category_scores.consistency.raw_score or 0 }}"
+                             aria-valuemin="0" 
+                             aria-valuemax="100">
+                        </div>
+                    </div>
+                    <small class="text-muted">Weight: {{ category_scores.consistency.weight or 25 }}%</small>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Code Quality -->
+        <div class="col-md-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="mb-0">
+                            <i class="bi bi-code-slash text-info me-2"></i>
+                            Code Quality
+                        </h5>
+                        <span class="badge bg-info">
+                            {{ category_scores.code_quality.raw_score or 0 }}/100
+                        </span>
+                    </div>
+                    <div class="progress mb-3" style="height: 10px;">
+                        <div class="progress-bar bg-info" 
+                             role="progressbar"
+                             style="width: {{ category_scores.code_quality.raw_score or 0 }}%"
+                             aria-valuenow="{{ category_scores.code_quality.raw_score or 0 }}"
+                             aria-valuemin="0" 
+                             aria-valuemax="100">
+                        </div>
+                    </div>
+                    <small class="text-muted">Weight: {{ category_scores.code_quality.weight or 25 }}%</small>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Impact -->
+        <div class="col-md-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="mb-0">
+                            <i class="bi bi-star text-warning me-2"></i>
+                            Impact
+                        </h5>
+                        <span class="badge bg-warning text-dark">
+                            {{ category_scores.impact.raw_score or 0 }}/100
+                        </span>
+                    </div>
+                    <div class="progress mb-3" style="height: 10px;">
+                        <div class="progress-bar bg-warning" 
+                             role="progressbar"
+                             style="width: {{ category_scores.impact.raw_score or 0 }}%"
+                             aria-valuenow="{{ category_scores.impact.raw_score or 0 }}"
+                             aria-valuemin="0" 
+                             aria-valuemax="100">
+                        </div>
+                    </div>
+                    <small class="text-muted">Weight: {{ category_scores.impact.weight or 20 }}%</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Red Flags -->
+    {% if feedback and feedback.red_flags %}
+    <div class="row mb-5">
+        <div class="col-12">
+            <h3 class="mb-4 text-danger">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                Red Flags - Fix These First!
+            </h3>
+        </div>
+        {% for flag in feedback.red_flags %}
+        <div class="col-12 mb-3">
+            <div class="card border-0 shadow-sm border-start border-danger border-4">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <h5 class="card-title mb-1">
+                                {{ flag.icon or '🚨' }} {{ flag.issue or 'Issue' }}
+                            </h5>
+                            <p class="text-muted mb-2">
+                                <strong>Why it matters:</strong> {{ flag.why_it_matters or '' }}
+                            </p>
+                            <p class="mb-0">
+                                <strong>How to fix:</strong> {{ flag.fix or '' }}
+                            </p>
+                        </div>
+                        <span class="badge bg-{{ 'danger' if flag.severity == 'CRITICAL' else ('warning text-dark' if flag.severity == 'HIGH' else 'secondary') }} ms-2">
+                            {{ flag.severity or 'MEDIUM' }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <!-- Strengths -->
+    {% if feedback and feedback.strengths %}
+    <div class="row mb-5">
+        <div class="col-12">
+            <h3 class="mb-4 text-success">
+                <i class="bi bi-check-circle-fill me-2"></i>
+                Your Strengths
+            </h3>
+        </div>
+        <div class="col-12">
+            <div class="row g-3">
+                {% for strength in feedback.strengths %}
+                <div class="col-md-6">
+                    <div class="card border-0 bg-success bg-opacity-10 h-100">
+                        <div class="card-body">
+                            {% if strength is mapping %}
+                                <span class="fs-5">{{ strength.icon or '✅' }}</span>
+                                <span class="ms-2">{{ strength.text or '' }}</span>
+                            {% else %}
+                                <span class="fs-5">✅</span>
+                                <span class="ms-2">{{ strength }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Priority Improvements -->
+    {% if feedback and feedback.priority_improvements %}
+    <div class="row mb-5">
+        <div class="col-12">
+            <h3 class="mb-4">
+                <i class="bi bi-arrow-up-circle-fill text-primary me-2"></i>
+                Priority Improvements
+            </h3>
+        </div>
+        
+        <div class="col-12">
+            <div class="accordion" id="improvementsAccordion">
+                {% for imp in feedback.priority_improvements %}
+                <div class="accordion-item border-0 shadow-sm mb-3">
+                    <h2 class="accordion-header" id="heading{{ loop.index }}">
+                        <button class="accordion-button {{ '' if loop.first else 'collapsed' }}" 
+                                type="button" 
+                                data-bs-toggle="collapse" 
+                                data-bs-target="#improvement{{ loop.index }}"
+                                aria-expanded="{{ 'true' if loop.first else 'false' }}"
+                                aria-controls="improvement{{ loop.index }}">
+                            <span class="badge bg-{{ 'danger' if imp.impact == 'HIGH' else ('warning text-dark' if imp.impact == 'MEDIUM' else 'info') }} me-3">
+                                {{ imp.impact or 'MEDIUM' }}
+                            </span>
+                            {{ imp.icon or '📌' }} {{ imp.title or 'Improvement' }}
+                        </button>
+                    </h2>
+                    <div id="improvement{{ loop.index }}" 
+                         class="accordion-collapse collapse {{ 'show' if loop.first else '' }}"
+                         aria-labelledby="heading{{ loop.index }}"
+                         data-bs-parent="#improvementsAccordion">
+                        <div class="accordion-body">
+                            {% if imp.description %}
+                            <p><strong>Why:</strong> {{ imp.description }}</p>
+                            {% endif %}
+                            
+                            {% if imp.specific_action %}
+                            <p><strong>Action:</strong> {{ imp.specific_action }}</p>
+                            {% endif %}
+                            
+                            {% if imp.template %}
+                            <div class="bg-dark text-light p-3 rounded mt-3">
+                                <small class="text-muted">Example README template:</small>
+                                <pre class="mb-0 text-white" style="white-space: pre-wrap; word-wrap: break-word;"><code>{{ imp.template }}</code></pre>
+                            </div>
+                            {% endif %}
+                            
+                            {% if imp.tips %}
+                            <div class="mt-3">
+                                <strong>Tips:</strong>
+                                <ul class="mb-0 mt-2">
+                                    {% for tip in imp.tips %}
+                                    <li>{{ tip }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% endif %}
+                            
+                            {% if imp.example %}
+                            <div class="mt-3">
+                                <strong>Example:</strong>
+                                <p class="mb-0 fst-italic text-muted">{{ imp.example }}</p>
+                            </div>
+                            {% endif %}
+                            
+                            {% if imp.bio_template %}
+                            <div class="mt-3">
+                                <strong>Bio Template:</strong>
+                                <p class="mb-0 font-monospace small bg-light p-2 rounded">{{ imp.bio_template }}</p>
+                            </div>
+                            {% endif %}
+                            
+                            {% if imp.how_to %}
+                            <div class="mt-3">
+                                <strong>How to:</strong>
+                                <p class="mb-0 text-muted">{{ imp.how_to }}</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- Quick Wins -->
+    {% if feedback and feedback.quick_wins %}
+    <div class="row mb-5">
+        <div class="col-12">
+            <h3 class="mb-4">
+                <i class="bi bi-lightning-fill text-warning me-2"></i>
+                Quick Wins (Under 30 Minutes)
+            </h3>
+        </div>
+        
+        {% for win in feedback.quick_wins %}
+        <div class="col-md-6 mb-3">
+            <div class="card border-0 shadow-sm h-100 bg-warning bg-opacity-10">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h5 class="card-title mb-0">
+                            {{ win.icon or '⚡' }} {{ win.title or 'Quick Win' }}
+                        </h5>
+                        <span class="badge bg-warning text-dark">
+                            <i class="bi bi-clock me-1"></i>{{ win.time or '10 min' }}
+                        </span>
+                    </div>
+                    
+                    {% if win.action %}
+                    <p class="mb-2"><strong>Action:</strong> {{ win.action }}</p>
+                    {% endif %}
+                    
+                    {% if win.how %}
+                    <p class="mb-0 text-muted"><strong>How:</strong> {{ win.how }}</p>
+                    {% endif %}
+                    
+                    {% if win.examples %}
+                    <p class="mt-2 mb-0 small text-muted">
+                        <strong>Examples:</strong> {{ win.examples }}
+                    </p>
+                    {% endif %}
+                    
+                    {% if win.template_url %}
+                    <p class="mt-2 mb-0">
+                        <a href="{{ win.template_url }}" target="_blank" class="small">
+                            <i class="bi bi-link-45deg"></i> View Templates
+                        </a>
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <!-- Category Details (Expandable) -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h3 class="mb-4">
+                <i class="bi bi-info-circle me-2"></i>
+                Detailed Analysis
+            </h3>
+        </div>
+        
+        <div class="col-12">
+            <div class="accordion" id="detailsAccordion">
+                <!-- Documentation Details -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#docDetails">
+                            <i class="bi bi-file-text text-primary me-2"></i>
+                            Documentation Details
+                        </button>
+                    </h2>
+                    <div id="docDetails" class="accordion-collapse collapse" data-bs-parent="#detailsAccordion">
+                        <div class="accordion-body">
+                            {% if category_scores.documentation.details %}
+                            <ul class="list-unstyled">
+                                <li>📊 README Coverage: <strong>{{ category_scores.documentation.details.readme_coverage or 0 }}%</strong></li>
+                                <li>📊 README Quality: <strong>{{ category_scores.documentation.details.readme_quality_avg or 0 }}%</strong></li>
+                                <li>📊 Description Coverage: <strong>{{ category_scores.documentation.details.description_coverage or 0 }}%</strong></li>
+                                <li>📊 Topics Usage: <strong>{{ category_scores.documentation.details.topics_usage or 0 }}%</strong></li>
+                            </ul>
+                            {% endif %}
+                            
+                            {% if category_scores.documentation.issues %}
+                            <div class="alert alert-warning">
+                                <strong>Issues Found:</strong>
+                                <ul class="mb-0">
+                                    {% for issue in category_scores.documentation.issues %}
+                                    <li>{{ issue }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Consistency Details -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#consDetails">
+                            <i class="bi bi-calendar-check text-success me-2"></i>
+                            Consistency Details
+                        </button>
+                    </h2>
+                    <div id="consDetails" class="accordion-collapse collapse" data-bs-parent="#detailsAccordion">
+                        <div class="accordion-body">
+                            {% if category_scores.consistency.details %}
+                            <ul class="list-unstyled">
+                                <li>📅 Active Days: <strong>{{ category_scores.consistency.details.unique_active_days or 0 }}</strong></li>
+                                <li>🔥 Longest Streak: <strong>{{ category_scores.consistency.details.longest_streak or 0 }} days</strong></li>
+                                <li>📊 Recent Commits (30d): <strong>{{ category_scores.consistency.details.recent_commits or 0 }}</strong></li>
+                                <li>✅ Recent Activity: <strong>{{ 'Yes' if category_scores.consistency.details.has_recent_activity else 'No' }}</strong></li>
+                            </ul>
+                            {% endif %}
+                            
+                            {% if category_scores.consistency.issues %}
+                            <div class="alert alert-warning">
+                                <strong>Issues Found:</strong>
+                                <ul class="mb-0">
+                                    {% for issue in category_scores.consistency.issues %}
+                                    <li>{{ issue }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Code Quality Details -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#qualDetails">
+                            <i class="bi bi-code-slash text-info me-2"></i>
+                            Code Quality Details
+                        </button>
+                    </h2>
+                    <div id="qualDetails" class="accordion-collapse collapse" data-bs-parent="#detailsAccordion">
+                        <div class="accordion-body">
+                            {% if category_scores.code_quality.details %}
+                            <ul class="list-unstyled">
+                                <li>📊 .gitignore Usage: <strong>{{ category_scores.code_quality.details.gitignore_percentage or 0 }}%</strong></li>
+                                <li>📊 LICENSE Files: <strong>{{ category_scores.code_quality.details.license_percentage or 0 }}%</strong></li>
+                                <li>📊 Commit Message Quality: <strong>{{ category_scores.code_quality.details.commit_message_quality or 0 }}%</strong></li>
+                                <li>💻 Languages Used: <strong>{{ category_scores.code_quality.details.total_languages or 0 }}</strong></li>
+                            </ul>
+                            {% endif %}
+                            
+                            {% if category_scores.code_quality.issues %}
+                            <div class="alert alert-warning">
+                                <strong>Issues Found:</strong>
+                                <ul class="mb-0">
+                                    {% for issue in category_scores.code_quality.issues %}
+                                    <li>{{ issue }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Impact Details -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#impDetails">
+                            <i class="bi bi-star text-warning me-2"></i>
+                            Impact Details
+                        </button>
+                    </h2>
+                    <div id="impDetails" class="accordion-collapse collapse" data-bs-parent="#detailsAccordion">
+                        <div class="accordion-body">
+                            {% if category_scores.impact.details %}
+                            <ul class="list-unstyled">
+                                <li>⭐ Total Stars: <strong>{{ category_scores.impact.details.total_stars or 0 }}</strong></li>
+                                <li>🍴 Total Forks: <strong>{{ category_scores.impact.details.total_forks or 0 }}</strong></li>
+                                <li>👥 Followers: <strong>{{ category_scores.impact.details.followers or 0 }}</strong></li>
+                                <li>📁 Complete Projects: <strong>{{ category_scores.impact.details.complete_projects or 0 }}/{{ category_scores.impact.details.total_repos or 0 }}</strong></li>
+                            </ul>
+                            {% endif %}
+                            
+                            {% if category_scores.impact.issues %}
+                            <div class="alert alert-warning">
+                                <strong>Issues Found:</strong>
+                                <ul class="mb-0">
+                                    {% for issue in category_scores.impact.issues %}
+                                    <li>{{ issue }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Action Buttons -->
+    <div class="row mt-5">
+        <div class="col-12 text-center">
+            <a href="{{ url_for('index') }}" class="btn btn-outline-primary btn-lg me-2 mb-2">
+                <i class="bi bi-arrow-left me-2"></i>
+                Analyze Another Profile
+            </a>
+            <a href="https://github.com/{{ profile.username }}" target="_blank" class="btn btn-dark btn-lg mb-2">
+                <i class="bi bi-github me-2"></i>
+                View on GitHub
+            </a>
+        </div>
+    </div>
+    
+</div>
+
+<!-- Add some custom styling for this page -->
+<style>
+    .score-card {
+        animation: fadeInScale 0.5s ease-out;
+    }
+    
+    @keyframes fadeInScale {
+        from {
+            opacity: 0;
+            transform: scale(0.9);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1);
+        }
+    }
+    
+    .progress-bar {
+        transition: width 1s ease-out;
+    }
+    
+    .accordion-button:not(.collapsed) {
+        background-color: #f8f9fa;
+        color: #212529;
+    }
+    
+    .accordion-button:focus {
+        box-shadow: none;
+        border-color: #dee2e6;
+    }
+    
+    pre code {
+        font-size: 0.875rem;
+    }
+    
+    .badge {
+        font-weight: 500;
+    }
+</style>
+{% endblock %}
