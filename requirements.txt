@@ -1,0 +1,57 @@
+# ============================================================
+# GitHub Portfolio Analyzer - Complete Dependencies
+# Version: 1.0.0
+# Python Version: 3.8+
+# ============================================================
+
+# ────────────────────────────────────────────────────────────
+# Web Framework & Server
+# ────────────────────────────────────────────────────────────
+flask==3.0.0              # Main web framework
+werkzeug==3.0.1           # WSGI utility library (Flask dependency)
+gunicorn==21.2.0          # Production WSGI HTTP server
+jinja2==3.1.2             # Template engine (Flask dependency)
+click==8.1.7              # CLI framework (Flask dependency)
+
+# ────────────────────────────────────────────────────────────
+# HTTP & API
+# ────────────────────────────────────────────────────────────
+requests==2.31.0          # HTTP library for GitHub API calls
+urllib3==2.1.0            # HTTP client (requests dependency)
+certifi==2023.11.17       # SSL certificates (requests dependency)
+
+# ────────────────────────────────────────────────────────────
+# Configuration & Environment
+# ────────────────────────────────────────────────────────────
+python-dotenv==1.0.0      # Load environment variables from .env file
+
+# ────────────────────────────────────────────────────────────
+# Data Processing (Optional)
+# ────────────────────────────────────────────────────────────
+pandas==2.1.4             # Data analysis library
+numpy==1.26.2             # Numerical computing (pandas dependency)
+
+# ────────────────────────────────────────────────────────────
+# Visualization (Optional)
+# ────────────────────────────────────────────────────────────
+plotly==5.18.0            # Interactive visualization library
+
+# ────────────────────────────────────────────────────────────
+# Development & Testing (Optional)
+# ────────────────────────────────────────────────────────────
+pytest==7.4.3             # Testing framework
+pytest-flask==1.3.0       # Flask testing utilities
+pytest-cov==4.1.0         # Test coverage plugin
+
+# ────────────────────────────────────────────────────────────
+# Code Quality (Optional)
+# ────────────────────────────────────────────────────────────
+flake8==6.1.0             # Linting tool
+black==23.12.1            # Code formatter
+pylint==3.0.3             # Static code analysis
+
+# ────────────────────────────────────────────────────────────
+# Security (Optional)
+# ────────────────────────────────────────────────────────────
+flask-talisman==1.1.0     # HTTPS/security headers
+flask-cors==4.0.0         # CORS support for API
